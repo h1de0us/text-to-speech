@@ -113,7 +113,6 @@ __MACOSX/
 
 
 seminar_data
-mels
-alignments
 test_data
 *.pt
+*.patch

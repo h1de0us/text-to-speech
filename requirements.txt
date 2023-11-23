@@ -27,7 +27,6 @@ idna==3.4
 importlib-metadata==6.8.0
 importlib-resources==6.1.1
 inflect==7.0.0
-ipykernel==6.27.0
 ipython==8.17.2
 jedi==0.19.1
 Jinja2==3.1.2

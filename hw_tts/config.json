@@ -1,0 +1,86 @@
+{
+  "name": "one_batch_test",
+  "n_gpu": 1,
+  "arch": {
+    "type": "FastSpeech",
+    "args": {
+      "max_seq_len": 3000,
+     "encoder_n_layer": 4,
+     "decoder_n_layer" : 4,
+     "vocab_size" : 300,
+     "encoder_dim" : 256,
+     "decoder_dim" : 256,
+     "pad_idx" : 0,
+     "encoder_conv1d_filter_size" : 1024,
+     "encoder_n_head" : 2,
+     "decoder_conv1d_filter_size" : 1024,
+     "decoder_n_head" : 2,
+     "num_mels" : 80,
+     "dropout" : 0.1
+    }
+  },
+  "data": {
+    "train": {
+      "batch_size": 10,
+      "num_workers": 0,
+      "datasets": [
+        {
+          "type": "BufferDataset",
+          "args": {
+            "data_path": "data/LJSpeech-1.1",
+            "mel_ground_truth": "data/mels",
+            "alignment_path": "data/alignments",
+            "text_cleaners": ["english_cleaners"]
+          }
+        }
+      ]
+    },
+    "val": {
+      "batch_size": 10,
+      "num_workers": 0,
+      "datasets": [
+        {
+          "type": "BufferDataset",
+          "args": {
+            "data_path": "data/LJSpeech-1.1",
+            "mel_ground_truth": "data/mels",
+            "alignment_path": "data/alignments",
+            "text_cleaners": ["english_cleaners"]
+          }
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 3e-4
+    }
+  },
+  "loss": {
+    "type": "FastSpeechLoss",
+    "args": {}
+  },
+  "lr_scheduler": {
+    "type": "OneCycleLR",
+    "args": {
+      "steps_per_epoch": 100,
+      "epochs": 50,
+      "anneal_strategy": "cos",
+      "max_lr": 1e-2,
+      "pct_start": 0.2
+    }
+  },
+  "trainer": {
+    "epochs": 50,
+    "save_dir": "saved/",
+    "save_period": 5,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandb_project": "tts_project",
+    "len_epoch": 100,
+    "grad_norm_clip": 10
+  }
+}

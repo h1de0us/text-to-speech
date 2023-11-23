@@ -110,3 +110,10 @@ wandb/
 .vscode/
 .idea/
 __MACOSX/
+
+
+seminar_data
+mels
+alignments
+test_data
+*.pt

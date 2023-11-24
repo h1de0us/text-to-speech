@@ -6,7 +6,6 @@ class FastSpeechLoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.mse = nn.MSELoss()
-        self.l1_loss = nn.L1Loss()
 
     def forward(self, **batch):
         mel_output, mel_target = batch["mel_output"], batch["mel_target"]
@@ -18,7 +17,7 @@ class FastSpeechLoss(nn.Module):
 
         # we compare the log of the length_target with the duration_predictor_output
         # because we predict log of real duration
-        duration_predictor_loss = self.l1_loss(duration_predictor_output,
+        duration_predictor_loss = self.mse(duration_predictor_output,
                                                 torch.log((length_target + 1).float())) 
 
 

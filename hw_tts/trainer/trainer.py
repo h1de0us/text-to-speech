@@ -145,7 +145,7 @@ class Trainer(BaseTrainer):
         src_pos = batch["src_pos"].long().to(self.device)
         max_mel_len = batch["mel_max_len"]
 
-        if self.model is FastSpeech:
+        if isinstance(self.model, FastSpeech):
             output, duration_predictor_output = self.model(character, 
                                                         src_pos, 
                                                         mel_pos, 

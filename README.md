@@ -8,8 +8,11 @@ To download and preprocess the data, run the following:
 ```shell
 bash run.sh download_data
 ```
-
-
+To train a model (default Fast Speech), run
+```shell
+cd text-to-speech
+python3 train.py -c hw_tts/configs/fast_speech_config.json
+```
 
 ## Credits
 

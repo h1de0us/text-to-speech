@@ -151,8 +151,19 @@ class Trainer(BaseTrainer):
                                                         mel_pos, 
                                                         max_mel_len,
                                                         length_target=duration,)
+        if isinstance(self.model, FastSpeech2):
+            output, duration_predictor_output, pitch_predictor_output, energy_predictor_output = self.model(character, 
+                                                                                                src_pos, 
+                                                                                                mel_pos, 
+                                                                                                max_mel_len,
+                                                                                                length_target=duration,)
+
         batch["mel_output"] = output
         batch["duration_predictor_output"] = duration_predictor_output
+
+        if isinstance(self.model, FastSpeech2):
+            batch["pitch_predictor_output"] = pitch_predictor_output
+            batch["energy_predictor_output"] = energy_predictor_output
 
         mel_loss, duration_predictor_loss, energy_predictor_loss, pitch_predictor_loss = self.criterion(**batch)
         total_loss = mel_loss + duration_predictor_loss

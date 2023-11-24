@@ -12,7 +12,7 @@ from torch.nn import functional as F
 
 from hw_tts.utils.helpers_for_fastspeech import *
 from hw_tts.model.common.fft import FFTBlock
-from hw_tts.model.common.lr import LengthRegulator
+from hw_tts.model.common.variance_adaptor import VarianceAdaptor
 from hw_tts.model.common.pos_encoding import DefaultPositionalEncoding
 
 # FastSpeech implementation
@@ -160,27 +160,6 @@ class Decoder(nn.Module):
 Fast Speech 2 implementation
 '''
 
-
-class WaveformDecoder(nn.Module):
-    def __init__(self, n_blocks, *args):
-        self.n_blocks = n_blocks
-        self.trans_conv1 = nn.ConvTranspose1d(...)
-        self.blocks = nn.ModuleList(
-            [nn.Conv1d(...),
-            nn.ReLU(), # dilated activation,
-            nn.Conv1d(...),] 
-            * self.n_blocks)
-        self.out_conv = nn.Conv1d(...)
-
-    def forward(self, x):
-        pass
-
-
-
-
-
-
-
 # All together
 
 class FastSpeech2(nn.Module):
@@ -198,6 +177,12 @@ class FastSpeech2(nn.Module):
                  encoder_n_head: int,
                  num_mels: int,
                  dropout: float,
+                 energy_vocab_size: int,
+                 pitch_vocab_size: int, 
+                 max_energy: float,
+                 max_pitch: float,
+                 predictors_filter_size: int,
+                 predictors_kernel_size: int,
                  use_flash_attention: bool = False,
                  use_default_pos_encoding: bool = False):
         super(FastSpeech2, self).__init__()
@@ -213,7 +198,14 @@ class FastSpeech2(nn.Module):
                             dropout,
                             use_flash_attention,
                             use_default_pos_encoding)
-        self.length_regulator = LengthRegulator()
+        self.variance_adaptor = VarianceAdaptor(energy_vocab_size,
+                                                pitch_vocab_size,
+                                                max_energy,
+                                                max_pitch,
+                                                encoder_dim,
+                                                predictors_filter_size,
+                                                predictors_kernel_size,
+                                                dropout)
         self.decoder = Decoder(max_seq_len,
                             decoder_n_layer,
                             encoder_dim,
@@ -232,5 +224,26 @@ class FastSpeech2(nn.Module):
         mask = mask.unsqueeze(-1).expand(-1, -1, mel_output.size(-1))
         return mel_output.masked_fill(mask, 0.)
 
-    def forward(self, src_seq, src_pos, mel_pos=None, mel_max_length=None, length_target=None, alpha=1.0):
-        pass
+    def forward(self, src_seq, src_pos, 
+                mel_pos=None, 
+                mel_max_length=None, 
+                length_target=None, 
+                pitch_target=None, 
+                energy_target=None,
+                alpha=1.0, beta=1.0, gamma=1.0):
+        x, non_pad_mask = self.encoder(src_seq, src_pos, return_attns=False)
+        if self.training:
+            output, duration_preds, pitch_preds, energy_preds = self.variance_adaptor(length_target,
+                                                                        mel_max_length,
+                                                                        alpha,
+                                                                        pitch_target,
+                                                                        beta,
+                                                                        energy_target,
+                                                                        gamma)
+
+            output = self.decoder(output, mel_pos)
+            output = self.mask_tensor(output, mel_pos, mel_max_length)
+            output = self.mel_linear(output)
+            return output, duration_preds, pitch_preds, energy_preds
+        return self.variance_adaptor(x)
+        

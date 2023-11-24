@@ -15,6 +15,10 @@ from hw_tts.base import BaseTrainer
 from hw_tts.logger.utils import plot_spectrogram_to_buf
 from hw_tts.utils import inf_loop, MetricTracker
 
+
+from hw_tts.model import FastSpeech
+from hw_tts.model import FastSpeech2
+
 from generate_audio import synthesis, get_data
 import os
 import audio
@@ -140,11 +144,13 @@ class Trainer(BaseTrainer):
         mel_pos = batch["mel_pos"].long().to(self.device)
         src_pos = batch["src_pos"].long().to(self.device)
         max_mel_len = batch["mel_max_len"]
-        output, duration_predictor_output = self.model(character, 
-                                                       src_pos, 
-                                                       mel_pos, 
-                                                       max_mel_len,
-                                                       length_target=duration,)
+
+        if self.model is FastSpeech:
+            output, duration_predictor_output = self.model(character, 
+                                                        src_pos, 
+                                                        mel_pos, 
+                                                        max_mel_len,
+                                                        length_target=duration,)
         batch["mel_output"] = output
         batch["duration_predictor_output"] = duration_predictor_output
 

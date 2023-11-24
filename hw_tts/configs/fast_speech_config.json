@@ -27,7 +27,7 @@
         {
           "type": "BufferDataset",
           "args": {
-            "data_path": "data/LJSpeech-1.1",
+            "data_path": "data/train.txt",
             "mel_ground_truth": "data/mels",
             "alignment_path": "data/alignments",
             "text_cleaners": ["english_cleaners"]
@@ -42,7 +42,7 @@
         {
           "type": "BufferDataset",
           "args": {
-            "data_path": "data/LJSpeech-1.1",
+            "data_path": "data/train.txt",
             "mel_ground_truth": "data/mels",
             "alignment_path": "data/alignments",
             "text_cleaners": ["english_cleaners"]

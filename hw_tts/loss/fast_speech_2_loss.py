@@ -8,17 +8,15 @@ class FastSpeech2Loss(nn.Module):
         self.mse = nn.MSELoss()
 
     def forward(self, 
-                mel_output, 
-                duration_predictor_output, 
-                pitch_predictor_output, 
-                energy_predictor_output, 
-                mel_target, 
-                length_target,
-                pitch_target,
-                energy_target, 
-                ):
-        # TODO: rework
-
+                **batch):
+        mel_output = batch["mel_output"]
+        duration_predictor_output = batch["duration_predictor_output"]
+        pitch_predictor_output = batch["pitch_predictor_output"]    
+        energy_predictor_output = batch["energy_predictor_output"]
+        mel_target = batch["mel_target"]
+        length_target = batch["length_target"]
+        pitch_target = batch["pitch_target"]
+        energy_target = batch["energy_target"]
 
         mel_loss = self.mse(mel_output, mel_target)
 

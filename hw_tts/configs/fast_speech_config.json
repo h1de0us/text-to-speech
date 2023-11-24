@@ -21,8 +21,8 @@
   },
   "data": {
     "train": {
-      "batch_size": 10,
-      "num_workers": 0,
+      "batch_size": 64,
+      "num_workers": 4,
       "datasets": [
         {
           "type": "BufferDataset",
@@ -30,7 +30,8 @@
             "data_path": "data/train.txt",
             "mel_ground_truth": "data/mels",
             "alignment_path": "data/alignments",
-            "text_cleaners": ["english_cleaners"]
+            "text_cleaners": ["english_cleaners"],
+            "batch_expand_size": 32
           }
         }
       ]
@@ -42,7 +43,7 @@
         {
           "type": "BufferDataset",
           "args": {
-            "data_path": "data/train.txt",
+            "data_path": "data/one_batch_test.txt",
             "mel_ground_truth": "data/mels",
             "alignment_path": "data/alignments",
             "text_cleaners": ["english_cleaners"]

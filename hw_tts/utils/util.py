@@ -116,7 +116,7 @@ def get_data_to_buffer(
 
         mel_gt_name = os.path.join(
             mel_ground_truth, "ljspeech-mel-%05d.npy" % (i+1))
-        mel_gt_target = np.load(mel_gt_name)
+        mel_gt_target = np.load(mel_gt_name, allow_pickle=True)
         duration = np.load(os.path.join(
             alignment_path, str(i)+".npy"))
         character = text_to_process[i][0:len(text_to_process[i])-1]

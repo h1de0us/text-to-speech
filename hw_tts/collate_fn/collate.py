@@ -84,6 +84,7 @@ def process_text(train_text_path):
 
 
 def reprocess_tensor(batch, cut_list):
+    batch_expand_size = [batch[ind]["batch_expand_size"] for ind in cut_list]
     texts = [batch[ind]["text"] for ind in cut_list]
     mel_targets = [batch[ind]["mel_target"] for ind in cut_list]
     durations = [batch[ind]["duration"] for ind in cut_list]
@@ -119,7 +120,8 @@ def reprocess_tensor(batch, cut_list):
            "duration": durations,
            "mel_pos": mel_pos,
            "src_pos": src_pos,
-           "mel_max_len": max_mel_len}
+           "mel_max_len": max_mel_len,
+           "batch_expand_size": batch_expand_size}
 
     return out
 

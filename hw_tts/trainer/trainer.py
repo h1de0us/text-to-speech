@@ -84,8 +84,9 @@ class Trainer(BaseTrainer):
         self.writer.add_scalar("epoch", epoch)
 
         tqdm_bar = tqdm(range(self.len_epoch), desc='train')
-        for _, lb in enumerate(self.train_dataloader):
+        for li, lb in enumerate(self.train_dataloader):
             for batch_idx, batch in enumerate(lb):
+                self.model.train()
                 tqdm_bar.update(1)
                 try:
                     batch = self.process_batch(
@@ -104,8 +105,11 @@ class Trainer(BaseTrainer):
                     else:
                         raise e
                 self.metrics.update("grad_norm", self.get_grad_norm())
-                if batch_idx % self.log_step == 0:
-                    self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
+                batch_idx_ = batch_idx + li * batch["batch_expand_size"][0]
+                if batch_idx_ % self.log_step == 0:
+                    self.writer.set_step(
+                        (epoch - 1) * self.len_epoch * self.batch_expand_size + batch_idx_
+                    )
                     self.logger.debug(
                         "Train Epoch: {} {} Loss: {:.6f}".format(
                             epoch, self._progress(batch_idx), batch["loss"].item()
@@ -119,14 +123,14 @@ class Trainer(BaseTrainer):
                     # because we are interested in recent train metrics
                     last_train_metrics = self.metrics.result()
                     self.metrics.reset()
-                if batch_idx >= self.len_epoch:
-                    break
-            log = last_train_metrics
-            self._evaluation_epoch(epoch)
-
+            if li >= self.len_epoch - 1:
+                break
+        log = last_train_metrics
+        self._evaluation_epoch(epoch)
         return log
 
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
+        batch = self.move_batch_to_device(batch, self.device, is_train)
         if is_train:
             self.optimizer.zero_grad()
 
@@ -170,6 +174,19 @@ class Trainer(BaseTrainer):
 
         metrics.update("loss", batch["loss"].item())
         return batch
+    
+
+    @staticmethod
+    def move_batch_to_device(batch, device: torch.device, is_train: bool):
+        tensors = ['text', 'src_pos']
+        if is_train:
+            tensors += ['duration', 'pitch_target', 'energy_target', 'mel_pos', 'mel_target']
+        for tensor_for_gpu in tensors:
+            try:
+                batch[tensor_for_gpu] = batch[tensor_for_gpu].to(device)
+            except Exception as e: # here may be NotFoundError
+                pass
+        return batch
 
     def _evaluation_epoch(self, epoch):
         """
@@ -185,8 +202,7 @@ class Trainer(BaseTrainer):
                 for i, phn in tqdm(enumerate(data_list)):
                     mel, mel_cuda = synthesis(self.model, phn, speed)
 
-                    mel_cuda = mel_cuda.squeeze(0).cpu() # remove batch dim
-                    self._log_spectrogram(mel_cuda)
+                    self._log_spectrogram(mel_cuda.squeeze(0).cpu()) # remove batch dim
                     
                     os.makedirs("results", exist_ok=True)
                     

@@ -108,7 +108,7 @@ class Trainer(BaseTrainer):
                 batch_idx_ = batch_idx + li * batch["batch_expand_size"][0]
                 if batch_idx_ % self.log_step == 0:
                     self.writer.set_step(
-                        (epoch - 1) * self.len_epoch * self.batch_expand_size + batch_idx_
+                        (epoch - 1) * self.len_epoch * batch["batch_expand_size"][0] + batch_idx_
                     )
                     self.logger.debug(
                         "Train Epoch: {} {} Loss: {:.6f}".format(
